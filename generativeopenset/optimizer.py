@@ -20,7 +20,7 @@ from pprint import pprint
 
 
 RESULTS_DIR = './data/nfs/experiments'
-DATA_DIR = './data/data'
+DATA_DIR = './data'
 PATIENCE_SEC = 10
 
 def run_new_experiment(params):
