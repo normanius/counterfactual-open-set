@@ -19,8 +19,8 @@ from docopt import docopt
 from pprint import pprint
 
 
-RESULTS_DIR = '/mnt/nfs/experiments'
-DATA_DIR = '/mnt/data'
+RESULTS_DIR = './data/nfs/experiments'
+DATA_DIR = './data/data'
 PATIENCE_SEC = 10
 
 def run_new_experiment(params):

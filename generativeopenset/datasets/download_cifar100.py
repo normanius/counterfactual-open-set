@@ -7,7 +7,7 @@ from tqdm import tqdm
 from PIL import Image
 import pickle
 
-DATA_DIR = '/mnt/nfs/data'
+DATA_DIR = './data/nfs/data'
 DATASET_NAME = 'cifar100'
 DATASET_PATH = os.path.join(DATA_DIR, DATASET_NAME)
 

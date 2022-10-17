@@ -11,7 +11,7 @@ import numpy as np
 import random
 import imutil
 
-DATA_DIR = '/mnt/nfs/data'
+DATA_DIR = './data/nfs/data'
 
 # Converters can be used like a function, on a single example or a batch
 class Converter(object):

@@ -6,7 +6,7 @@ import json
 from subprocess import check_output
 from scipy import io as sio
 
-DATA_DIR = '/mnt/data'
+DATA_DIR = './data/data'
 DATASET_NAME = 'oxford102'
 DATASET_PATH = os.path.join(DATA_DIR, DATASET_NAME)
 
@@ -31,7 +31,7 @@ def main():
     download('setid.mat', SPLITS_URL)
     download('README.txt', README_URL)
 
-    image_dir = '/mnt/data/oxford102/jpg'
+    image_dir = './data/data/oxford102/jpg'
     image_filenames = listdir(image_dir)
 
     imagelabels_mat = sio.loadmat('imagelabels.mat')
