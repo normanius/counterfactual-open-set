@@ -19,8 +19,8 @@ from docopt import docopt
 from pprint import pprint
 
 
-RESULTS_DIR = './data/nfs/experiments'
-DATA_DIR = './data'
+RESULTS_DIR = "./results"
+DATA_DIR = os.path.join(os.getenv('OSR4H'), 'counterfactual')
 PATIENCE_SEC = 10
 
 def run_new_experiment(params):

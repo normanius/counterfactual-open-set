@@ -52,5 +52,5 @@ optimizers = get_optimizers(networks, **options)
 save_options(options)
 
 # Use git ls-files to copy all files in the repository to the destination directory
-from repo import copy_repo
-copy_repo(options['result_dir'])
+#from repo import copy_repo
+#copy_repo(options['result_dir'])

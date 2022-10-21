@@ -7,7 +7,7 @@ from tqdm import tqdm
 from PIL import Image
 import pickle
 
-DATA_DIR = './data'
+DATA_DIR = os.path.join(os.getenv('OSR4H_DATA'), 'counterfactual')
 DATASET_NAME = 'cifar10'
 DATASET_PATH = os.path.join(DATA_DIR, DATASET_NAME)
 

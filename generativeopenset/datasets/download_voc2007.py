@@ -5,7 +5,7 @@ import json
 from subprocess import check_output, Popen
 from scipy import io as sio
 
-DATA_DIR = './data'
+DATA_DIR = os.path.join(os.getenv('OSR4H_DATA'), 'counterfactual')
 DATASET_NAME = 'voc2007'
 DATASET_PATH = os.path.join(DATA_DIR, DATASET_NAME)
 
