@@ -5,22 +5,37 @@ from torch import optim
 from torch import nn
 from imutil import ensure_directory_exists
 
-
-def build_networks(num_classes, epoch=None, latent_size=10, batch_size=64, **options):
+def build_networks(num_classes, epoch=None, image_size=32,
+                   latent_size=10, batch_size=64, print_networks=True,
+                   **options):
     networks = {}
 
     EncoderClass = network_definitions.encoder32
-    networks['encoder'] = EncoderClass(latent_size=latent_size)
+    networks['encoder'] = EncoderClass(image_size=image_size,
+                                       latent_size=latent_size,
+                                       batch_size=batch_size)
 
     GeneratorClass = network_definitions.generator32
-    networks['generator'] = GeneratorClass(latent_size=latent_size)
+    networks['generator'] = GeneratorClass(image_size=image_size,
+                                           latent_size=latent_size,
+                                           batch_size=batch_size)
 
     DiscrimClass = network_definitions.multiclassDiscriminator32
-    networks['discriminator'] = DiscrimClass(num_classes=num_classes, latent_size=latent_size)
+    networks['discriminator'] = DiscrimClass(num_classes=num_classes,
+                                             image_size=image_size,
+                                             latent_size=latent_size,
+                                             batch_size=batch_size)
 
     ClassifierClass = network_definitions.classifier32
-    networks['classifier_k'] = ClassifierClass(num_classes=num_classes, latent_size=latent_size)
-    networks['classifier_kplusone'] = ClassifierClass(num_classes=num_classes, latent_size=latent_size)
+    networks['classifier_k'] = ClassifierClass(num_classes=num_classes,
+                                               image_size=image_size,
+                                               latent_size=latent_size,
+                                               batch_size=batch_size)
+    networks['classifier_kplusone'] = ClassifierClass(num_classes=num_classes,
+                                                      image_size=image_size,
+                                                      latent_size=latent_size,
+                                                      batch_size=batch_size)
+
 
     for net_name in networks:
         pth = get_pth_by_epoch(options['result_dir'], net_name, epoch)
