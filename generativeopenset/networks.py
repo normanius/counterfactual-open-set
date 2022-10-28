@@ -5,6 +5,25 @@ from torch import optim
 from torch import nn
 from imutil import ensure_directory_exists
 
+def print_summary(network, image_size, label, print_error=True):
+    try:
+        from torchinfo import summary
+    except ModuleNotFoundError:
+        print("Warning: Install package 'torchinfo' to show network info.")
+        return
+
+    print("="*80)
+    print(label)
+    print("="*80)
+    print()
+    try:
+        summary(network, image_size)
+    except RuntimeError as e:
+        print("Failed to generate summary for input size:", image_size)
+        print()
+        print(traceback.format_exc())
+    print()
+
 def build_networks(num_classes, epoch=None, image_size=32,
                    latent_size=10, batch_size=64, print_networks=True,
                    **options):
@@ -35,6 +54,16 @@ def build_networks(num_classes, epoch=None, image_size=32,
                                                       image_size=image_size,
                                                       latent_size=latent_size,
                                                       batch_size=batch_size)
+
+
+    if print_networks:
+        img_size = (3, image_size, image_size)
+        print_summary(networks["encoder"], img_size, label="Encoder")
+        print_summary(networks["generator"], (latent_size,), label="Generator")
+        print_summary(networks["discriminator"], img_size, label="Discriminator")
+        print_summary(networks["classifier_k"], img_size, label="Classifier k")
+        print_summary(networks["classifier_kplusone"], img_size, label="Classifier k+1")
+        print()
 
 
     for net_name in networks:
