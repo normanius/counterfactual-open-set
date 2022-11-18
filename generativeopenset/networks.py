@@ -1,4 +1,5 @@
 import os
+import traceback
 import network_definitions
 import torch
 from torch import optim
@@ -57,7 +58,7 @@ def build_networks(num_classes, epoch=None, image_size=32,
 
 
     if print_networks:
-        img_size = (3, image_size, image_size)
+        img_size = (1, 3, image_size, image_size)
         print_summary(networks["encoder"], img_size, label="Encoder")
         print_summary(networks["generator"], (latent_size,), label="Generator")
         print_summary(networks["discriminator"], img_size, label="Discriminator")
