@@ -30,14 +30,14 @@ def evaluate_classifier(networks, dataloader, open_set_dataloader=None, **option
     classification_closed_correct = 0
     classification_total = 0
     for images, labels in dataloader:
-        images = Variable(images, volatile=True)
-        # Predict a classification among known classes
-        net_y = netC(images)
-        class_predictions = F.softmax(net_y, dim=1)
+        with torch.no_grad():
+            # Predict a classification among known classes
+            net_y = netC(images)
+            class_predictions = F.softmax(net_y, dim=1)
 
-        _, predicted = class_predictions.max(1)
-        classification_closed_correct += sum(predicted.data == labels)
-        classification_total += len(labels)
+            _, predicted = class_predictions.max(1)
+            classification_closed_correct += sum(predicted.data == labels)
+            classification_total += len(labels)
 
     stats = {
         fold: {
@@ -217,41 +217,41 @@ def openset_weibull(dataloader_test, dataloader_train, netC):
 def openset_kplusone(dataloader, netC):
     openset_scores = []
     for i, (images, labels) in enumerate(dataloader):
-        images = Variable(images, volatile=True)
-        preds = netC(images)
-        # The implicit K+1th class (the open set class) is computed
-        #  by assuming an extra linear output with constant value 0
-        z = torch.exp(preds).sum(dim=1)
-        prob_known = z / (z + 1)
-        prob_unknown = 1 - prob_known
-        openset_scores.extend(prob_unknown.data.cpu().numpy())
+        with torch.no_grad():
+            preds = netC(images)
+            # The implicit K+1th class (the open set class) is computed
+            #  by assuming an extra linear output with constant value 0
+            z = torch.exp(preds).sum(dim=1)
+            prob_known = z / (z + 1)
+            prob_unknown = 1 - prob_known
+            openset_scores.extend(prob_unknown.data.cpu().numpy())
     return np.array(openset_scores)
 
 
 def openset_softmax_confidence(dataloader, netC):
     openset_scores = []
     for i, (images, labels) in enumerate(dataloader):
-        images = Variable(images, volatile=True)
-        preds = F.softmax(netC(images), dim=1)
-        openset_scores.extend(preds.max(dim=1)[0].data.cpu().numpy())
+        with torch.no_grad():
+            preds = F.softmax(netC(images), dim=1)
+            openset_scores.extend(preds.max(dim=1)[0].data.cpu().numpy())
     return -np.array(openset_scores)
 
 
 def openset_fuxin(dataloader, netC):
     openset_scores = []
     for i, (images, labels) in enumerate(dataloader):
-        images = Variable(images, volatile=True)
-        logits = netC(images)
-        augmented_logits = F.pad(logits, pad=(0,1))
-        # The implicit K+1th class (the open set class) is computed
-        #  by assuming an extra linear output with constant value 0
-        preds = F.softmax(augmented_logits)
-        #preds = augmented_logits
-        prob_unknown = preds[:, -1]
-        prob_known = preds[:, :-1].max(dim=1)[0]
-        prob_open = prob_unknown - prob_known
+        with torch.no_grad():
+            logits = netC(images)
+            augmented_logits = F.pad(logits, pad=(0,1))
+            # The implicit K+1th class (the open set class) is computed
+            #  by assuming an extra linear output with constant value 0
+            preds = F.softmax(augmented_logits)
+            #preds = augmented_logits
+            prob_unknown = preds[:, -1]
+            prob_known = preds[:, :-1].max(dim=1)[0]
+            prob_open = prob_unknown - prob_known
 
-        openset_scores.extend(prob_open.data.cpu().numpy())
+            openset_scores.extend(prob_open.data.cpu().numpy())
     return np.array(openset_scores)
 
 
