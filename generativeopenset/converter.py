@@ -14,7 +14,8 @@ import imutil
 from torchvision import transforms as transform_lib
 from PIL import Image
 
-DATA_DIR = './data/nfs/data'
+#DATA_DIR = './data/nfs/data'
+DATA_DIR = os.getenv("OSR4H_DATA", "OSR4H_DATA/VARIABLE/MISSING")
 
 # Converters can be used like a function, on a single example or a batch
 class Converter(object):
@@ -57,19 +58,26 @@ class ImageConverter(Converter):
         box = example.get('box') if self.bounding_box else None
         img = imutil.load(filename)
         if img.shape[0:2] != self.img_shape:
+            # Input image does not have the proper shape.
+            # - 1. Crop the center
+            # - 2. Optionally apply scale.
+            #       image_scale==None: scale image so that smaller dim fits
+            #       image_scale==1:    no scaling, just cropping
+            #       image_scale>1:     field of view ⬆, resolution ⬇
             w_target, h_target = self.img_shape
-            w, h = img.shape[0:2]
+            w, h, c = img.shape
             if self.image_scale is None:
                 scale = min(w/w_target, h/h_target)
             else:
                 scale = self.image_scale
             new_shape = (w/scale, h/scale)
-            new_shape = np.array(new_shape).round().astype(int)
+            new_shape = [int(round(d)) for d in new_shape]
             trafos = transform_lib.Compose([transform_lib.Resize(new_shape),
                                             transform_lib.CenterCrop((w_target,
                                                                       h_target)),
                                            ])
-            img_t = trafos(Image.fromarray(img, "RGB"))
+            # img has been converted already to float, but trafos requires uint8!
+            img_t = trafos(Image.fromarray(img.astype(np.uint8), "RGB"))
             img_t = np.array(img_t, dtype=img.dtype)
             img = img_t
         if self.delete_background:
