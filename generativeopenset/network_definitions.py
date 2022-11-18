@@ -1,3 +1,5 @@
+import sys
+import math
 import torch
 from torch import nn
 from vector import clamp_to_unit_sphere
@@ -14,7 +16,7 @@ def weights_init(m):
 
 
 class encoder32(nn.Module):
-    def __init__(self, latent_size=100, num_classes=2, batch_size=64, **kwargs):
+    def __init__(self, image_size=32, latent_size=100, num_classes=2, batch_size=64, **kwargs):
         super(self.__class__, self).__init__()
         self.batch_size = batch_size
         self.num_classes = num_classes
@@ -51,7 +53,10 @@ class encoder32(nn.Module):
         self.bn9 = nn.BatchNorm2d(128)
         self.bn10 = nn.BatchNorm2d(128)
 
-        self.fc1 = nn.Linear(128*2*2, latent_size)
+        # Empirically determined function:
+        # Original value: 128*2*2
+        n_features = int(0.5*(math.ceil(image_size/16)*16)**2)
+        self.fc1 = nn.Linear(n_features, latent_size)
 
         self.dr1 = nn.Dropout2d(0.2)
         self.dr2 = nn.Dropout2d(0.2)
@@ -63,6 +68,9 @@ class encoder32(nn.Module):
 
     def forward(self, x, output_scale=1):
         batch_size = len(x)
+        image_size = x.size()[-2:]
+        assert image_size[0] == image_size[1]
+        image_size = image_size[0]
 
         x = self.dr1(x)
         x = self.conv1(x)
@@ -86,11 +94,14 @@ class encoder32(nn.Module):
         x = self.bn6(x)
         x = nn.LeakyReLU(0.2)(x)
 
-        # Image representation is now 8 x 8
+        # For input 32x32: representation is now 8 x 8
+        # For input nxn:   representation is now n/4 x n/4
         if output_scale == 8:
+            n_dims = int(math.ceil(image_size/4))
+            assert n_dims == x.size()[-1]
             x = self.conv_out_6(x)
             x = x.view(batch_size, -1)
-            x = clamp_to_unit_sphere(x, 8*8)
+            x = clamp_to_unit_sphere(x, n_dims*n_dims)
             return x
 
         x = self.dr3(x)
@@ -104,11 +115,14 @@ class encoder32(nn.Module):
         x = self.bn9(x)
         x = nn.LeakyReLU(0.2)(x)
 
-        # Image representation is now 4x4
+        # For input 32x32: representation is now 4 x 4
+        # For input nxn:   representation is now n/8 x n/8
         if output_scale == 4:
+            n_dims = int(math.ceil(image_size/8))
+            assert n_dims == x.size()[-1]
             x = self.conv_out_9(x)
             x = x.view(batch_size, -1)
-            x = clamp_to_unit_sphere(x, 4*4)
+            x = clamp_to_unit_sphere(x, n_dims*n_dims)
             return x
 
         x = self.dr4(x)
@@ -116,32 +130,46 @@ class encoder32(nn.Module):
         x = self.bn10(x)
         x = nn.LeakyReLU(0.2)(x)
 
-        # Image representation is now 2x2
+        # For input 32x32: representation is now 2x2
+        # For input nxn:   representation is now n/16 x n/16
         if output_scale == 2:
+            n_dims = int(math.ceil(image_size/16))
+            assert n_dims == x.size()[-1]
             x = self.conv_out_10(x)
             x = x.view(batch_size, -1)
-            x = clamp_to_unit_sphere(x, 2*2)
+            x = clamp_to_unit_sphere(x, n_dims*n_dims)
             return x
 
+        #print("ooo", x.size(), file=sys.stderr)
         x = x.view(batch_size, -1)
         x = self.fc1(x)
         x = clamp_to_unit_sphere(x)
+        #print("ooo", x.size(), file=sys.stderr)
         return x
 
 
 class generator32(nn.Module):
-    def __init__(self, latent_size=100, batch_size=64, **kwargs):
+    def __init__(self, image_size=32, latent_size=100, batch_size=64, **kwargs):
         super(self.__class__, self).__init__()
         self.latent_size = latent_size
         self.fc1 = nn.Linear(latent_size, 512*2*2, bias=False)
 
         self.conv2_in = nn.ConvTranspose2d(latent_size, 512, 1, stride=1, padding=0, bias=False)
-        self.conv2 = nn.ConvTranspose2d(   512,      512, 4, stride=2, padding=1, bias=False)
+        self.conv2    = nn.ConvTranspose2d(   512,      512, 4, stride=2, padding=1, bias=False)
         self.conv3_in = nn.ConvTranspose2d(latent_size, 512, 1, stride=1, padding=0, bias=False)
-        self.conv3 = nn.ConvTranspose2d(   512,      256, 4, stride=2, padding=1, bias=False)
+        self.conv3    = nn.ConvTranspose2d(   512,      256, 4, stride=2, padding=1, bias=False)
         self.conv4_in = nn.ConvTranspose2d(latent_size, 256, 1, stride=1, padding=0, bias=False)
-        self.conv4 = nn.ConvTranspose2d(   256,      128, 4, stride=2, padding=1, bias=False)
-        self.conv5 = nn.ConvTranspose2d(   128,        3, 4, stride=2, padding=1)
+        self.conv4    = nn.ConvTranspose2d(   256,      128, 4, stride=2, padding=1, bias=False)
+        self.conv5    = nn.ConvTranspose2d(   128,        3, 4, stride=2, padding=1)
+
+        if image_size >= 64:
+            self.conv6    = nn.ConvTranspose2d(   128,        128, 4, stride=2, padding=1)
+        if image_size >= 128:
+            self.conv7    = nn.ConvTranspose2d(   128,        128, 4, stride=2, padding=1)
+        if image_size >= 256:
+            self.conv8    = nn.ConvTranspose2d(   128,        128, 4, stride=2, padding=1)
+        if image_size >= 512:
+            self.conv8    = nn.ConvTranspose2d(   128,        128, 4, stride=2, padding=1)
 
         self.bn1 = nn.BatchNorm2d(512)
         self.bn2 = nn.BatchNorm2d(512)
@@ -184,15 +212,24 @@ class generator32(nn.Module):
             x = self.conv4(x)
             x = nn.LeakyReLU()(x)
             x = self.bn4(x)
+
+        if hasattr(self, "conv6"):
+            x = self.conv6(x)
+        if hasattr(self, "conv7"):
+            x = self.conv7(x)
+        if hasattr(self, "conv8"):
+            x = self.conv8(x)
+
         # 128 x 16 x 16
         x = self.conv5(x)
+
         # 3 x 32 x 32
         x = nn.Sigmoid()(x)
         return x
 
 
 class multiclassDiscriminator32(nn.Module):
-    def __init__(self, latent_size=100, num_classes=2, batch_size=64, **kwargs):
+    def __init__(self, image_size=32, latent_size=100, num_classes=2, batch_size=64, **kwargs):
         super(self.__class__, self).__init__()
         self.batch_size = batch_size
         self.num_classes = num_classes
@@ -220,7 +257,10 @@ class multiclassDiscriminator32(nn.Module):
         self.bn8 = nn.BatchNorm2d(128)
         self.bn9 = nn.BatchNorm2d(128)
 
-        self.fc1 = nn.Linear(128*4*4 * 2, num_classes)
+        # Empirically determined function:
+        # Original value: 128*4*4*2
+        n_features = int(4*(math.ceil(image_size/8)*8)**2)
+        self.fc1 = nn.Linear(n_features, num_classes)
         self.dr1 = nn.Dropout2d(0.2)
         self.dr2 = nn.Dropout2d(0.2)
         self.dr3 = nn.Dropout2d(0.2)
@@ -277,7 +317,7 @@ class multiclassDiscriminator32(nn.Module):
 
 
 class classifier32(nn.Module):
-    def __init__(self, latent_size=100, num_classes=2, batch_size=64, **kwargs):
+    def __init__(self, image_size=32, latent_size=100, num_classes=2, batch_size=64, **kwargs):
         super(self.__class__, self).__init__()
         self.batch_size = batch_size
         self.num_classes = num_classes
@@ -305,7 +345,10 @@ class classifier32(nn.Module):
         self.bn8 = nn.BatchNorm2d(128)
         self.bn9 = nn.BatchNorm2d(128)
 
-        self.fc1 = nn.Linear(128*4*4, num_classes)
+        # Empirically determined function:
+        # Original value: 128*4*4
+        n_features = int(2*(math.ceil(image_size/8)*8)**2)
+        self.fc1 = nn.Linear(n_features, num_classes)
         self.dr1 = nn.Dropout2d(0.2)
         self.dr2 = nn.Dropout2d(0.2)
         self.dr3 = nn.Dropout2d(0.2)
