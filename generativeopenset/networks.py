@@ -58,9 +58,9 @@ def build_networks(num_classes, epoch=None, image_size=32,
 
 
     if print_networks:
-        img_size = (1, 3, image_size, image_size)
+        img_size = (batch_size, 3, image_size, image_size)
         print_summary(networks["encoder"], img_size, label="Encoder")
-        print_summary(networks["generator"], (latent_size,), label="Generator")
+        print_summary(networks["generator"], (batch_size, latent_size,), label="Generator")
         print_summary(networks["discriminator"], img_size, label="Discriminator")
         print_summary(networks["classifier_k"], img_size, label="Classifier k")
         print_summary(networks["classifier_kplusone"], img_size, label="Classifier k+1")
