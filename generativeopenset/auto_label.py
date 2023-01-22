@@ -38,14 +38,15 @@ assert not is_square(26)
 
 
 # Generate a cool filename for it and save it
-def save_image(pixels):
+def save_image(pixels, out_dir):
     import uuid
     from PIL import Image
     pixels = (255 * pixels).astype(np.uint8)
     img = Image.fromarray(pixels)
-    filename = os.path.join('trajectories', uuid.uuid4().hex) + '.png'
-    img.save(filename)
-    return os.path.join(os.getcwd(), filename)
+    filepath = os.path.join(out_dir, uuid.uuid4().hex) + '.png'
+    filepath = os.path.abspath(filepath)
+    img.save(filepath)
+    return filepath
 
 
 def write_dataset(examples, filename):
@@ -68,10 +69,11 @@ def grid_from_filename(filename):
 
 
 examples = []
-for filename in ls('trajectories', '.npy'):
+trajectories_dir = os.path.join(options['result_dir'], 'trajectories')
+for filename in ls(trajectories_dir, '.npy'):
     grid = grid_from_filename(filename)
     for image in grid:
-        filename = save_image(image)
+        filename = save_image(image, out_dir=trajectories_dir)
         examples.append({
             'filename': filename,
             'label': 0,

@@ -266,11 +266,11 @@ def plot_roc(y_true, y_score, title="Receiver Operating Characteristic", **optio
 
 
 def save_evaluation(new_results, result_dir, epoch):
-    if not os.path.exists('evaluations'):
-        os.mkdir('evaluations')
     filename = 'evaluations/eval_epoch_{:04d}.json'.format(epoch)
     filename = os.path.join(result_dir, filename)
     filename = os.path.expanduser(filename)
+    if not os.path.isdir(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
     if os.path.exists(filename):
         old_results = json.load(open(filename))
     else:
