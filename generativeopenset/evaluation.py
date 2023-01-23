@@ -182,7 +182,7 @@ def openset_weibull(dataloader_test, dataloader_train, netC):
         batch_logits = netC(images).data.cpu().numpy()
         batch_weibull = np.zeros(shape=batch_logits.shape)
         for activation_vector in batch_logits:
-            weibull_row = np.ones(len(classes))
+            weibull_row = np.ones(dataloader_train.num_classes)
             for class_idx in classes:
                 mav = mean_activation_vectors[class_idx]
                 dist = np.linalg.norm(activation_vector - mav)
