@@ -18,14 +18,14 @@ GENERATOR_MODE=open_set
 #         --dataset "/mnt/data/boston.dataset" \
 #         --hypothesis "boston simple" \
 #         --image_size 200
-PARAMS_TEMPLATE="./params_boston_32.json"
+PARAMS_TEMPLATE="${1:-./params_boston_32.json}"
 
 # Argument 1: Leave out class
 # Options are: baso blast eo ig lymph mono neut nrbc
-LEAVE_ONE_OUT_CLASS="${1:-mono}"
+LEAVE_ONE_OUT_CLASS="${2:-mono}"
 
 # Argument 2: Output directory
-RESULTS_DIR="${2:-./out_new}"
+RESULTS_DIR="${3:-./out_new}"
 
 print_title () {
     _bar=$(printf '=%.0s' {1..60})
