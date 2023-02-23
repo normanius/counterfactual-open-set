@@ -1,0 +1,20 @@
+# conda install --file requirements.txt
+ipython
+jupyter
+jupyterlab
+matplotlib
+mypy
+nibabel
+numpy
+opencv
+pandas
+pytables
+pytest
+pyqt
+pytorch
+scikit-image
+scikit-learn
+scipy
+seaborn
+statsmodels
+torchvision
