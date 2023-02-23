@@ -1,5 +1,5 @@
-git+http://github.com/lwneal/imutil
-git+http://github.com/lwneal/logutil
+#git+http://github.com/lwneal/imutil
+#git+http://github.com/lwneal/logutil
 numpy
 scipy
 torch

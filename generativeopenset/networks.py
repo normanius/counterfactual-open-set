@@ -1,26 +1,71 @@
 import os
+import traceback
 import network_definitions
 import torch
 from torch import optim
 from torch import nn
 from imutil import ensure_directory_exists
 
+def print_summary(network, image_size, label, print_error=True):
+    try:
+        from torchinfo import summary
+    except ModuleNotFoundError:
+        print("Warning: Install package 'torchinfo' to show network info.")
+        return
 
-def build_networks(num_classes, epoch=None, latent_size=10, batch_size=64, **options):
+    print("="*80)
+    print(label)
+    print("="*80)
+    print()
+    try:
+        summary(network, image_size)
+    except RuntimeError as e:
+        print("Failed to generate summary for input size:", image_size)
+        print()
+        print(traceback.format_exc())
+    print()
+
+def build_networks(num_classes, epoch=None, image_size=32,
+                   latent_size=10, batch_size=64, print_networks=True,
+                   **options):
     networks = {}
 
     EncoderClass = network_definitions.encoder32
-    networks['encoder'] = EncoderClass(latent_size=latent_size)
+    networks['encoder'] = EncoderClass(image_size=image_size,
+                                       latent_size=latent_size,
+                                       batch_size=batch_size)
 
     GeneratorClass = network_definitions.generator32
-    networks['generator'] = GeneratorClass(latent_size=latent_size)
+    networks['generator'] = GeneratorClass(image_size=image_size,
+                                           latent_size=latent_size,
+                                           batch_size=batch_size)
 
     DiscrimClass = network_definitions.multiclassDiscriminator32
-    networks['discriminator'] = DiscrimClass(num_classes=num_classes, latent_size=latent_size)
+    networks['discriminator'] = DiscrimClass(num_classes=num_classes,
+                                             image_size=image_size,
+                                             latent_size=latent_size,
+                                             batch_size=batch_size)
 
     ClassifierClass = network_definitions.classifier32
-    networks['classifier_k'] = ClassifierClass(num_classes=num_classes, latent_size=latent_size)
-    networks['classifier_kplusone'] = ClassifierClass(num_classes=num_classes, latent_size=latent_size)
+    networks['classifier_k'] = ClassifierClass(num_classes=num_classes,
+                                               image_size=image_size,
+                                               latent_size=latent_size,
+                                               batch_size=batch_size)
+    networks['classifier_kplusone'] = ClassifierClass(num_classes=num_classes,
+                                                      image_size=image_size,
+                                                      latent_size=latent_size,
+                                                      batch_size=batch_size)
+
+
+    if print_networks:
+        img_size = (batch_size, 3, image_size, image_size)
+        print_summary(networks["encoder"], img_size, label="Encoder")
+        print_summary(networks["generator"], (batch_size, latent_size,), label="Generator")
+        print_summary(networks["discriminator"], img_size, label="Discriminator")
+        print_summary(networks["classifier_k"], img_size, label="Classifier k")
+        print_summary(networks["classifier_kplusone"], img_size, label="Classifier k+1")
+        print()
+
 
     for net_name in networks:
         pth = get_pth_by_epoch(options['result_dir'], net_name, epoch)

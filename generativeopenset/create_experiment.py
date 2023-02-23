@@ -38,7 +38,7 @@ if options.get('result_dir') is None:
     dataset_name = options['dataset'].split('/')[-1].split('.')[0]
     import uuid
     random_hex = uuid.uuid4().hex[:8]
-    options['result_dir'] = '/mnt/nfs/experiments/{}_{}'.format(
+    options['result_dir'] = './data/nfs/experiments/{}_{}'.format(
             dataset_name, random_hex)
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -52,5 +52,5 @@ optimizers = get_optimizers(networks, **options)
 save_options(options)
 
 # Use git ls-files to copy all files in the repository to the destination directory
-from repo import copy_repo
-copy_repo(options['result_dir'])
+#from repo import copy_repo
+#copy_repo(options['result_dir'])

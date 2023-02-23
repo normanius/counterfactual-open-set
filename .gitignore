@@ -1,5 +1,9 @@
+data/
+
 *.swp
 __pycache__
 checkpoints/
 images/
 runs/
+results/
+out*/

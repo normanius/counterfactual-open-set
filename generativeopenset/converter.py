@@ -11,7 +11,11 @@ import numpy as np
 import random
 import imutil
 
-DATA_DIR = '/mnt/nfs/data'
+from torchvision import transforms as transform_lib
+from PIL import Image
+
+#DATA_DIR = './data/nfs/data'
+DATA_DIR = os.getenv("OSR4H_DATA", "OSR4H_DATA/VARIABLE/MISSING")
 
 # Converters can be used like a function, on a single example or a batch
 class Converter(object):
@@ -30,6 +34,7 @@ class ImageConverter(Converter):
     def __init__(self,
             dataset,
             image_size=32,
+            image_scale=None,
             crop_to_bounding_box=True,
             random_horizontal_flip=False,
             delete_background=False,
@@ -38,6 +43,7 @@ class ImageConverter(Converter):
             **kwargs):
         width, height = image_size, image_size
         self.img_shape = (width, height)
+        self.image_scale = image_scale
         self.bounding_box = crop_to_bounding_box
         self.data_dir = dataset.data_dir
         self.random_horizontal_flip = random_horizontal_flip
@@ -50,9 +56,30 @@ class ImageConverter(Converter):
         if not filename.startswith('/'):
             filename = os.path.join(DATA_DIR, filename)
         box = example.get('box') if self.bounding_box else None
-        # HACK
-        #box = (.25, .75, 0, 1)
         img = imutil.load(filename)
+        if img.shape[0:2] != self.img_shape:
+            # Input image does not have the proper shape.
+            # - 1. Crop the center
+            # - 2. Optionally apply scale.
+            #       image_scale==None: scale image so that smaller dim fits
+            #       image_scale==1:    no scaling, just cropping
+            #       image_scale>1:     field of view ⬆, resolution ⬇
+            w_target, h_target = self.img_shape
+            w, h, c = img.shape
+            if self.image_scale is None:
+                scale = min(w/w_target, h/h_target)
+            else:
+                scale = self.image_scale
+            new_shape = (w/scale, h/scale)
+            new_shape = [int(round(d)) for d in new_shape]
+            trafos = transform_lib.Compose([transform_lib.Resize(new_shape),
+                                            transform_lib.CenterCrop((w_target,
+                                                                      h_target)),
+                                           ])
+            # img has been converted already to float, but trafos requires uint8!
+            img_t = trafos(Image.fromarray(img.astype(np.uint8), "RGB"))
+            img_t = np.array(img_t, dtype=img.dtype)
+            img = img_t
         if self.delete_background:
             seg_filename = os.path.expanduser(example['segmentation'])
             segmentation = imutil.load(seg_filename)

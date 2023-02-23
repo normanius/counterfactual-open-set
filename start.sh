@@ -2,7 +2,7 @@
 # Break on any error
 set -e
 
-DATASET_DIR=data/
+DATASET_DIR="$OSR4H_DATA/counterfactual"
 
 # Download any datasets not currently available
 # TODO: do this in python, based on --dataset

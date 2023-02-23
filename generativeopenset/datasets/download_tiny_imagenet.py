@@ -6,7 +6,7 @@ import json
 from subprocess import check_output
 
 
-DATA_ROOT_DIR = '/mnt/nfs/data'
+DATA_ROOT_DIR = os.path.join(os.getenv('OSR4H_DATA'), 'counterfactual')
 DATASET_DIR = os.path.join(DATA_ROOT_DIR, 'tiny_imagenet')
 DATASET_NAME = 'tiny_imagenet'
 
