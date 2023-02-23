@@ -2,8 +2,6 @@
 # Break on any error
 set -e
 
-DATASET_DIR=/mnt/data/
-
 # Hyperparameters
 GAN_EPOCHS=30
 #GAN_EPOCHS=15
