@@ -17,9 +17,8 @@ This is a fork of a project by Lawrence Neal et al., with some adaptations made 
 ###############################################################################
 
 # Clone the repository and checkout the develop branch.
-git clone "https://github.com/normanius/counterfactual-open-set.git"
-cd "counterfactual-open-set"
-git checkout -b "develop origin/develop"
+git clone "https://github.com/normanius/osrci4h.git"
+cd "osrci4h"
 
 ###############################################################################
 # PYTHON ENVIRONMENT
@@ -88,7 +87,6 @@ HOLD_OUT="baso"
 # ./start_boston_all.sh
 
 ```
-
 
 
 
